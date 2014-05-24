@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+		}
+
+		ul {
+			width: 480px;
+			height: 480px;
+			margin: 20px auto;
+			position: relative;
+		}
+
+		li {
+			list-style: none;
+			float: left;
+			width: 150px;
+			height: 150px;
+			margin: 5px;
+		}
+
+		img {
+			width: 150px;
+			height: 150px;
+		}
+	</style>
+</head>
+<body>
+	<div>
+		<ul>
+			<li><img src="img/fl1.jpg" alt=""></li>
+			<li><img src="img/fl2.jpg" alt=""></li>
+			<li><img src="img/fl3.jpg" alt=""></li>
+			<li><img src="img/fl4.jpg" alt=""></li>
+			<li><img src="img/fl5.jpg" alt=""></li>
+			<li><img src="img/fl6.jpg" alt=""></li>
+			<li><img src="img/fl7.jpg" alt=""></li>
+			<li><img src="img/fl8.jpg" alt=""></li>
+			<li><img src="img/fl9.jpg" alt=""></li>
+		</ul>
+	</div>
+
+	<script src="js/move2.js"></script>
+	<script type="text/javascript">
+
+		var aLi = document.getElementsByTagName('li');
+		var iIndex = 1;
+		var aPos = [];
+
+		for(var i = 0; i < aLi.length; i++) {
+			aLi[i].style.left = aLi[i].offsetLeft + "px";
+			aLi[i].style.top = aLi[i].offsetTop + "px";
+			aLi[i].setAttribute("index", i);
+		}
+
+		for(var i = 0; i < aLi.length; i++) {
+			aLi[i].style.position = "absolute";
+			aLi[i].style.margin = "0";
+		}
+
+		for(i = 0; i < aLi.length; i++) {
+			aPos[i] = { left: aLi[i].offsetLeft, top: aLi[i].offsetTop };
+		}
+
+		for(var i = 0;  i < aLi.length; i++) {
+			drag(aLi[i]);
+		}
+
+
+		function drag(elem) {
+			var disX = 0;
+			var disY = 0;
+
+			elem.onmousedown = function(e) {
+				e = e || window.event;
+
+				elem.style.zIndex = iIndex++;
+
+				disX = e.clientX - elem.offsetLeft;
+				disY = e.clientY - elem.offsetTop;
+
+				document.onmousemove = function(e) {
+					e = e || window.event;
+					elem.style.left = e.clientX - disX + "px";
+					elem.style.top = e.clientY - disY + "px";
+
+					for(var i = 0; i < aLi.length; i++) {
+						aLi[i].style.border = "none";
+					}
+
+					oNearest = findNearest(elem, aLi);
+
+					if(oNearest) {
+						oNearest.style.border = "1px dotted red";
+					}
+				}
+
+				document.onmouseup = function(e) {
+					document.onmousemove=null;
+					document.onmouseup=null;
+
+					var oNearest = findNearest(elem, aLi);
+					var tmp1 = 0;
+					var tmp2 = 0;
+
+					if(oNearest) {
+						oNearest.style.border = "none";
+
+						oNearest.style.zIndex = iIndex++;
+						elem.style.zIndex = iIndex++;
+
+						startMove(oNearest, aPos[elem.getAttribute("index")]);
+						startMove(elem, aPos[oNearest.getAttribute("index")]);
+
+						tmp1 = elem.getAttribute("index");
+						tmp2 = oNearest.getAttribute("index");
+
+						elem.setAttribute("index", tmp2);
+						oNearest.setAttribute("index", tmp1);
+					}else {
+						startMove(elem, aPos[elem.getAttribute("index")]);
+					}
+				}
+
+				//clearInterval(elem.timer);
+
+				return false;
+			}
+
+		}
+
+		function collideTest(elem, target) {
+			var elemLeft = elem.offsetLeft,
+				elemTop = elem.offsetTop,
+				elemBottom = elem.offsetTop + elem.offsetHeight,
+				elemRight = elem.offsetLeft + elem.offsetWidth;
+
+			var targetLeft = target.offsetLeft,
+				targetTop = target.offsetTop,
+				targetBottom = target.offsetTop + target.offsetHeight,
+				targetRight = target.offsetLeft + target.offsetWidth;
+
+			if(elemLeft < targetRight && elemTop < targetBottom && elemBottom > targetTop && elemRight > targetLeft) {
+				return true;
+			}else {
+				return false;
+			}
+		}
+
+		function getDistance(elem1, elem2) {
+			var a = elem1.offsetLeft - elem2.offsetLeft;
+			var b = elem1.offsetTop - elem2.offsetTop;
+
+			return Math.sqrt(a * a + b * b);
+		}
+
+		function findNearest(elem, aObj) {
+			var iMin = 999999999;
+			var iMinIndex = -1;
+			var dis = 0;
+
+			for(i = 0; i < aObj.length; i++) {
+				if(elem == aObj[i]) {
+					continue;
+				}
+
+				if(collideTest(elem, aObj[i])) {
+					dis = getDistance(elem, aObj[i]);
+
+					if(iMin > dis) {
+						iMin = dis;
+						iMinIndex = i;
+					}
+				}
+			}
+
+			if(iMinIndex == -1) {
+				return null;
+			} else {
+				return aObj[iMinIndex];
+			}
+		}
+
+	</script>
+
+</body>
+</html>
